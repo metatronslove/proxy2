@@ -1,62 +1,120 @@
 # proxy2
 
-HTTP/HTTPS proxy in a single python script
-
+HTTP/HTTPS proxy in a single Python script – now with **Python 3.13+** and **Windows 11** support!
 
 ## Features
 
-* easy to customize
-* require no external modules
-* support both of IPv4 and IPv6
-* support HTTP/1.1 Persistent Connection
-* support dynamic certificate generation for HTTPS intercept
+* Easy to customize – override `request_handler`, `response_handler`, `save_handler`
+* No external Python modules required (only OpenSSL for HTTPS intercept)
+* Supports IPv4 and IPv6
+* HTTP/1.1 persistent connections
+* Dynamic certificate generation for HTTPS interception
+* **Enhanced console output** – live request viewer with colours, client IP, timing, size
+* **Optional JSONL logging** – for integration with log analyzers
+* **Windows ANSI colours** – works in PowerShell, cmd, Windows Terminal
+* **Backward compatible** – your old Python 2 custom handlers still work!
 
-This script works on Python 2.7.
-You need to install OpenSSL to intercept HTTPS connections.
+## Requirements
 
+- Python 3.13 or newer
+- OpenSSL command line tool (for HTTPS intercept) – [Download for Windows](https://slproweb.com/products/Win32OpenSSL.html)
 
 ## Usage
 
-Just run as a script:
+```bash
+# Basic HTTP proxy on port 8080
+python proxy2.py
 
-```
-$ python proxy2.py
-```
+# Custom port and bind address
+python proxy2.py --port 3128 --bind 127.0.0.1
 
-Above command runs the proxy on localhost:8080.
-Verify it works by typing the below command on another terminal of the same host.
+# HTTPS intercept mode (client → proxy over SSL)
+python proxy2.py --https-proxy --port 8443
 
-```
-$ http_proxy=localhost:8080 curl http://www.example.com/
-```
-
-proxy2 is made for debugging/testing, so it only accepts connections from localhost.
-
-To use another port, specify the port number as the first argument.
-
-```
-$ python proxy2.py 3128
+# Enable verbose logging and file output
+python proxy2.py --verbose --log-file proxy.log
 ```
 
-
-## Enable HTTPS intercept
-
-To intercept HTTPS connections, generate private keys and a private CA certificate:
-
-```
-$ ./setup_https_intercept.sh
+Test with curl:
+```bash
+curl --proxy localhost:8080 http://example.com/
+curl --proxy localhost:8080 https://example.com/   # if HTTPS intercept enabled
 ```
 
-Through the proxy, you can access http://proxy2.test/ and install the CA certificate in the browsers.
+## Enable HTTPS Intercept
 
+### Windows (PowerShell)
+```powershell
+.\setup_https_intercept.ps1
+```
 
-## Customization
+### Linux/macOS
+```bash
+chmod +x setup_https_intercept.sh
+./setup_https_intercept.sh
+```
 
-You can easily customize the proxy and modify the requests/responses or save something to the files.
-The ProxyRequestHandler class has 3 methods to customize:
+Then visit **http://proxy2.test/** in your browser to download and install the CA certificate.
 
-* request_handler: called before accessing the upstream server
-* response_handler: called before responding to the client
-* save_handler: called after responding to the client with the exclusive lock, so you can safely write out to the terminal or the file system
+## Command Line Options
 
-By default, only save_handler is implemented which outputs HTTP(S) headers and some useful data to the standard output.
+| Argument           | Description                                      |
+|--------------------|--------------------------------------------------|
+| `-p, --port`       | Port to listen on (default: 8080)               |
+| `-b, --bind`       | Bind address (default: `""` – all interfaces)   |
+| `--https-proxy`    | Run as **HTTPS proxy** (client→proxy SSL)       |
+| `--log-file`       | Append JSONL logs to this file                  |
+| `--no-color`       | Disable ANSI colours (for logging to file)      |
+| `--verbose`        | Show full headers and body preview              |
+
+## Customization Examples
+
+The `examples/` folder contains ready‑to‑use custom proxies:
+
+| Example        | Description                                      |
+|----------------|--------------------------------------------------|
+| `uachanger.py` | Change User‑Agent to Internet Explorer 5.01     |
+| `sslstrip.py`  | Convert HTTPS links to HTTP (SSL stripping)     |
+| `redirector.py`| Rewrite specific URLs (add your own rules)      |
+
+Simply run:
+```bash
+python examples/uachanger.py --port 8000
+```
+
+## ✅ Windows'ta Test Etme
+
+```powershell
+# 1. Sertifikaları oluştur (bir kere)
+.\setup_https_intercept.ps1
+
+# 2. Proxy'yi başlat
+python proxy2.py --port 8888 --verbose
+
+# 3. Ayrı bir terminalde örnekleri çalıştır
+python examples\uachanger.py --port 8000
+python examples\sslstrip.py --port 8001
+python examples\redirector.py --port 8002
+
+# 4. Curl ile test et
+curl --proxy localhost:8888 http://example.com/
+curl --proxy localhost:8000 http://example.com/   # UA değişmiş
+curl --proxy localhost:8001 https://example.com/  # SSL strip
+curl --proxy localhost:8002 http://google.com/    # example.com'a yönlendirir
+```
+
+---
+
+## 📦 Özet
+
+| Dosya                          | Açıklama                                  |
+|--------------------------------|-------------------------------------------|
+| `proxy2.py`                    | Ana proxy – Python 3, Windows ANSI, log   |
+| `setup_https_intercept.ps1`    | Windows için sertifika oluşturma scripti  |
+| `https_trasparent.py`          | Eski HTTPS proxy server (opsiyonel)       |
+| `examples/uachanger.py`        | User-Agent değiştirme örneği              |
+| `examples/sslstrip.py`         | HTTPS → HTTP dönüştürücü                  |
+| `examples/redirector.py`       | URL yeniden yazma / engelleme örneği      |
+| `examples/proxy2.py`           | examples/ içinden ana proxy'yi çağırır    |
+
+---
