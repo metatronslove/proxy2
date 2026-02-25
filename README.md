@@ -118,3 +118,11 @@ curl --proxy localhost:8002 http://google.com/    # example.com'a yönlendirir
 | `examples/proxy2.py`           | examples/ içinden ana proxy'yi çağırır    |
 
 ---
+
+## ☕ Destek Olun / Support
+
+Projemi beğendiyseniz, bana bir kahve ısmarlayarak destek olabilirsiniz!
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/metatronslove)
+
+Teşekkürler! 🙏
